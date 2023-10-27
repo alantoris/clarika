@@ -4,11 +4,12 @@ from .serializers import CreateNodeSerializer, UpdateNodeSerializer
 
 class NodeViewSet(mixins.CreateModelMixin,
                   mixins.UpdateModelMixin,
+                  mixins.DestroyModelMixin,
                 viewsets.GenericViewSet):
     """
     Viewset for handling the Node operations
     """
-    queryset = Node.objects.all()
+    queryset = Node.objects.filter(deleted=False)
     serializer_class = CreateNodeSerializer
 
     def get_serializer_class(self):

@@ -75,3 +75,10 @@ After these steps we will have the backend available in our local environment on
             value: "NEW VALUE"  // Node new value
             parent: 1           // Node parent id
         }
+
+- Delete a node
+    - DELETE /nodes/<ID_NODE>/
+    - body 
+        {}
+    - response
+        {}
