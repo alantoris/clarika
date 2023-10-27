@@ -10,3 +10,9 @@ class Node(models.Model):
 
     def __str__(self):
         return f'Node: {self.pk} Value: {self.value}'
+    
+    def check_tree_level(self):
+        if self.parent is None:
+            return 0
+        else:
+            return 1 + self.parent.check_tree_level()

@@ -13,6 +13,17 @@ class NodesViewSetTest(TestCase):
         self.root_node_pk = 1
         self.not_existing_parent_node_id = 100
         self.new_node_value = "VALUE"
+        self.sub_tree = [
+            {
+                "value": self.new_node_value,
+                "children": [
+                    {
+                        "value": self.new_node_value,
+                        "children": []
+                    }
+                ]
+            }
+        ]
     
     def test_create_ok(self):
         response = self.client.post(
@@ -23,6 +34,7 @@ class NodesViewSetTest(TestCase):
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
+                'id',
                 'value',
                 'parent'
             ]), sorted(response.data.keys()))
@@ -36,5 +48,19 @@ class NodesViewSetTest(TestCase):
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertEquals(
             sorted([
+                'parent'
+            ]), sorted(response.data.keys()))
+        
+    def test_create_with_subtree_ok(self):
+        response = self.client.post(
+            f'/nodes/', 
+            dict(parent=self.root_node_pk, value=self.new_node_value, children=self.sub_tree),
+            format="json"
+        )
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
                 'parent'
             ]), sorted(response.data.keys()))

@@ -32,6 +32,33 @@ After these steps we will have the backend available in our local environment on
         }
     - response
         {
+            id: 2           // New node id
+            value: "NAME"   // Node name
+            parent: 1       // Node parent id
+        }
+
+
+- Add new subtree to a node
+    - POST /nodes/
+    - body
+        {
+            "value": "NAME",    // Node name
+            "parent": 1,        // Node parent id
+            "children": [       // SUB TREE
+                {
+                    "value": "SUB NODE NAME", 
+                    "children": [
+                        {
+                            "value": "SUB NODE 2 NAME", 
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    - response
+        {
+            id: 2           // New node id
             value: "NAME"   // Node name
             parent: 1       // Node parent id
         }
