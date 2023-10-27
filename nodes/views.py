@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Node
 from .serializers import CreateNodeSerializer, UpdateNodeSerializer
+import json
 
 class NodeViewSet(mixins.CreateModelMixin,
                   mixins.UpdateModelMixin,
@@ -33,9 +34,13 @@ class NodeViewSet(mixins.CreateModelMixin,
             data=request.data,
             context={"instance_id": pk}
         )
+
         if serializer.is_valid(raise_exception=True):
             node = Node.objects.get(pk=pk)
             node.deleted = False
             node.save()
+            children = request.GET.get('children')
+            if children is not None and json.loads(children.lower()) is True:
+                node.restore_children()
         data = self.get_serializer_class()(node).data
         return Response(data, status=status.HTTP_200_OK)

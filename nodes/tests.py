@@ -220,3 +220,54 @@ class NodesViewSetTest(TestCase):
             sorted([
                 'non_field_errors',
             ]), sorted(response.data.keys()))
+
+    def test_restore_node_with_children_ok(self):
+        response = self.create_node(self.root_node_pk, self.new_node_value)
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+        
+        new_node_id = response.data['id']
+        response = self.create_node(new_node_id, self.new_node_value)
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+        
+        child_node_id = response.data['id']
+        response = self.client.delete(
+            f'/nodes/{new_node_id}/', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_204_NO_CONTENT, response.status_code)
+
+        deleted_node = Node.objects.get(pk=new_node_id)
+        self.assertEquals(deleted_node.deleted, True)
+
+        child_node = Node.objects.get(pk=child_node_id)
+        self.assertEquals(child_node.deleted, True)
+
+        response = self.client.post(
+            f'/nodes/{new_node_id}/restore/?children=true', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_200_OK, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+
+        restored_node = Node.objects.get(pk=new_node_id)
+        self.assertEquals(restored_node.deleted, False)
+
+        restored_child_node = Node.objects.get(pk=child_node_id)
+        self.assertEquals(restored_child_node.deleted, False)

@@ -93,3 +93,15 @@ After these steps we will have the backend available in our local environment on
             value: "VALUE"      // Node value
             parent: 1           // Node parent id
         }
+
+- Restore a node, and restore also his children
+    - POST /nodes/<ID_NODE>/restore/?children=true
+    - body 
+        {}
+    - response
+        {
+            id: 2               // Node id
+            value: "VALUE"      // Node value
+            parent: 1           // Node parent id
+        }
+

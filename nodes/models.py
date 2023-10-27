@@ -31,3 +31,10 @@ class Node(models.Model):
         self.deleted = True
         self.delete_children()
         self.save()
+
+    def restore_children(self):
+        """Restore the children nodes"""
+        for child in Node.objects.filter(parent=self):
+            child.deleted = False
+            child.save()
+            child.restore_children()
