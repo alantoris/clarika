@@ -27,12 +27,19 @@ class NodesViewSetTest(TestCase):
             }
         ]
     
-    def test_create_ok(self):
+    def create_node(self, parent_id, value, children=None):
+        data = dict(parent=parent_id, value=value)
+        if children:
+            data.update(children=children)
         response = self.client.post(
             f'/nodes/', 
-            dict(parent=self.root_node_pk, value=self.new_node_value),
+            data,
             format="json"
         )
+        return response
+    
+    def test_create_ok(self):
+        response = self.create_node(self.root_node_pk, self.new_value)
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
@@ -42,11 +49,7 @@ class NodesViewSetTest(TestCase):
             ]), sorted(response.data.keys()))
         
     def test_create_parent_not_exist(self):
-        response = self.client.post(
-            f'/nodes/', 
-            dict(parent=self.not_existing_node_id, value=self.new_node_value),
-            format="json"
-        )
+        response = self.create_node(self.not_existing_node_id, self.new_value)
         self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.assertEquals(
             sorted([
@@ -54,11 +57,7 @@ class NodesViewSetTest(TestCase):
             ]), sorted(response.data.keys()))
         
     def test_create_with_subtree_ok(self):
-        response = self.client.post(
-            f'/nodes/', 
-            dict(parent=self.root_node_pk, value=self.new_node_value, children=self.sub_tree),
-            format="json"
-        )
+        response = self.create_node(self.root_node_pk, self.new_node_value, children=self.sub_tree)
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
@@ -94,11 +93,7 @@ class NodesViewSetTest(TestCase):
             ]), sorted(response.data.keys()))
     
     def test_delete_ok(self):
-        response = self.client.post(
-            f'/nodes/', 
-            dict(parent=self.root_node_pk, value=self.new_node_value),
-            format="json"
-        )
+        response = self.create_node(self.root_node_pk, self.new_node_value)
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
@@ -123,11 +118,7 @@ class NodesViewSetTest(TestCase):
         self.assertEquals(status.HTTP_404_NOT_FOUND, response.status_code)
 
     def test_delete_with_children_ok(self):
-        response = self.client.post(
-            f'/nodes/', 
-            dict(parent=self.root_node_pk, value=self.new_node_value),
-            format="json"
-        )
+        response = self.create_node(self.root_node_pk, self.new_node_value)
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
@@ -137,11 +128,7 @@ class NodesViewSetTest(TestCase):
             ]), sorted(response.data.keys()))
         
         new_node_id = response.data['id']
-        response = self.client.post(
-            f'/nodes/', 
-            dict(parent=new_node_id, value=self.new_node_value),
-            format="json"
-        )
+        response = self.create_node(new_node_id, self.new_node_value)
         self.assertEquals(status.HTTP_201_CREATED, response.status_code)
         self.assertEquals(
             sorted([
@@ -160,3 +147,76 @@ class NodesViewSetTest(TestCase):
         self.assertEquals(deleted_node.deleted, True)
         child_node = Node.objects.get(pk=child_node_id)
         self.assertEquals(child_node.deleted, True)
+
+    def test_restore_deleted_node_ok(self):
+        response = self.create_node(self.root_node_pk, self.new_node_value)
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+        new_node_id = response.data['id']
+        response = self.client.delete(
+            f'/nodes/{new_node_id}/', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_204_NO_CONTENT, response.status_code)
+        deleted_node = Node.objects.get(pk=new_node_id)
+        self.assertEquals(deleted_node.deleted, True)
+
+        response = self.client.post(
+            f'/nodes/{new_node_id}/restore/', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_200_OK, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+
+    def test_restore_node_with_parent_deleted_fail(self):
+        response = self.create_node(self.root_node_pk, self.new_node_value)
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+        
+        new_node_id = response.data['id']
+        response = self.create_node(new_node_id, self.new_node_value)
+        self.assertEquals(status.HTTP_201_CREATED, response.status_code)
+        self.assertEquals(
+            sorted([
+                'id',
+                'value',
+                'parent'
+            ]), sorted(response.data.keys()))
+        
+        child_node_id = response.data['id']
+        response = self.client.delete(
+            f'/nodes/{new_node_id}/', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_204_NO_CONTENT, response.status_code)
+
+        deleted_node = Node.objects.get(pk=new_node_id)
+        self.assertEquals(deleted_node.deleted, True)
+
+        child_node = Node.objects.get(pk=child_node_id)
+        self.assertEquals(child_node.deleted, True)
+
+        response = self.client.post(
+            f'/nodes/{child_node_id}/restore/', 
+            format="json"
+        )
+        self.assertEquals(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.assertEquals(
+            sorted([
+                'non_field_errors',
+            ]), sorted(response.data.keys()))

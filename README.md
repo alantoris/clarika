@@ -82,3 +82,14 @@ After these steps we will have the backend available in our local environment on
         {}
     - response
         {}
+
+- Restore a node 
+    - POST /nodes/<ID_NODE>/restore/
+    - body 
+        {}
+    - response
+        {
+            id: 2               // Node id
+            value: "VALUE"      // Node value
+            parent: 1           // Node parent id
+        }

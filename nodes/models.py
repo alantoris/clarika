@@ -1,10 +1,12 @@
 from django.db import models
 
+
 class Node(models.Model):
     """
     Class representing a Node of a tree
     """
-    value = models.CharField(max_length=30)
+    NODE_VALUE_MAX_LENGTH = 30
+    value = models.CharField(max_length=NODE_VALUE_MAX_LENGTH)
     deleted = models.BooleanField(default=False)
     parent = models.ForeignKey('self', null=True, on_delete=models.CASCADE)
 
