@@ -27,13 +27,13 @@ After these steps we will have the backend available in our local environment on
     - POST /nodes/
     - body 
         {
-            value: "NAME"   // Node name
+            value: "VALUE"   // Node value
             parent: 1       // Node parent id
         }
     - response
         {
             id: 2           // New node id
-            value: "NAME"   // Node name
+            value: "VALUE"   // Node value
             parent: 1       // Node parent id
         }
 
@@ -42,14 +42,14 @@ After these steps we will have the backend available in our local environment on
     - POST /nodes/
     - body
         {
-            "value": "NAME",    // Node name
+            "value": "VALUE",    // Node value
             "parent": 1,        // Node parent id
             "children": [       // SUB TREE
                 {
-                    "value": "SUB NODE NAME", 
+                    "value": "SUB NODE VALUE", 
                     "children": [
                         {
-                            "value": "SUB NODE 2 NAME", 
+                            "value": "SUB NODE 2 VALUE", 
                             "children": []
                         }
                     ]
@@ -59,6 +59,19 @@ After these steps we will have the backend available in our local environment on
     - response
         {
             id: 2           // New node id
-            value: "NAME"   // Node name
+            value: "VALUE"   // Node value
             parent: 1       // Node parent id
+        }
+
+- Set the value of a particular node
+    - PATCH /nodes/<ID_NODE>/
+    - body
+        {
+            "value": "NEW VALUE"
+        }
+    - response
+        {
+            id: 2               // Node id
+            value: "NEW VALUE"  // Node new value
+            parent: 1           // Node parent id
         }

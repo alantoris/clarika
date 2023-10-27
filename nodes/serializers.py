@@ -4,9 +4,9 @@ from .utils import check_deep_children_structure
 
 TREE_LEVEL_ERROR = "The tree has already 10 levels, can't add more nodes under this node"
 
-class NodeSerializer(serializers.ModelSerializer):
+class CreateNodeSerializer(serializers.ModelSerializer):
     """
-    Serializers of Node class
+    Node class serializers for creations.
     """
     parent = serializers.PrimaryKeyRelatedField(queryset=Node.objects.all())
     children = serializers.JSONField(required=False)
@@ -25,3 +25,12 @@ class NodeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(TREE_LEVEL_ERROR)
             data.pop("children")
         return data
+
+class UpdateNodeSerializer(serializers.ModelSerializer):
+    """
+    Node class serializers for updates.
+    """
+
+    class Meta:
+        model = Node
+        fields = ('id', 'value', 'parent')
